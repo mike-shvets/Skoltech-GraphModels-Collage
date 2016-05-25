@@ -53,12 +53,24 @@ class ImageCollage(object):
                     phi_unaries[i_vert] = self.inf * (1 - masks[:, ih, iw])
                 
                 if ih + 1 < n:
-                    c_pairwise[j_edge] = i_vert, i_vert + m, np.max(
-                        np.linalg.norm(inputs[:, ih, iw] - inputs[:, ih+1, iw], axis=1))
+                    c_cur = 0
+                    for p1 in xrange(K):
+                        for p2 in xrange(K):
+                            c_try = np.linalg.norm(inputs[p1, ih, iw] - inputs[p2, ih+1, iw])
+                            c_cur = max(c_cur, c_try)
+                    #c_pairwise[j_edge] = i_vert, i_vert + m, np.max(
+                    #    np.linalg.norm(inputs[:, ih, iw] - inputs[:, ih+1, iw], axis=1))
+                    c_pairwise[j_edge] = i_vert, i_vert + m, c_cur
                     j_edge += 1
                 if iw + 1 < m:
-                    c_pairwise[j_edge] = i_vert, i_vert + 1, np.max(
-                        np.linalg.norm(inputs[:, ih, iw] - inputs[:, ih, iw+1], axis=1))
+                    c_cur = 0
+                    for p1 in xrange(K):
+                        for p2 in xrange(K):
+                            c_try = np.linalg.norm(inputs[p1, ih, iw] - inputs[p2, ih, iw+1])
+                            c_cur = max(c_cur, c_try)
+                    c_pairwise[j_edge] = i_vert, i_vert + 1, c_cur
+                    #c_pairwise[j_edge] = i_vert, i_vert + 1, np.max(
+                    #    np.linalg.norm(inputs[:, ih, iw] - inputs[:, ih, iw+1], axis=1))
                     j_edge += 1
                 i_vert += 1
         
