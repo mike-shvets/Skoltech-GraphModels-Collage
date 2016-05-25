@@ -49,7 +49,9 @@ class ImageCollage(object):
         j_edge = 0
         for ih in xrange(n):
             for iw in xrange(m):
-                phi_unaries[i_vert] = self.inf * (1 - masks[:, ih, iw])
+                if (masks[:, ih, iw].sum()>1e-1):
+                    phi_unaries[i_vert] = self.inf * (1 - masks[:, ih, iw])
+                
                 if ih + 1 < n:
                     c_pairwise[j_edge] = i_vert, i_vert + m, np.max(
                         np.linalg.norm(inputs[:, ih, iw] - inputs[:, ih+1, iw], axis=1))
@@ -213,7 +215,7 @@ class ImageCollage(object):
         else:
             return X
     
-    def show_collage(self, X, save=False):
+    def show_collage(self, X, atype='a', save=False):
         """
         Show resulting collage and save it to file
         """
@@ -223,8 +225,40 @@ class ImageCollage(object):
         for k in xrange(self.K):
             result += self.inputs[k] * (X == k)[:, :, None]
             
-        fig, ax = plt.subplots(figsize=(15, 8))
-        ax.imshow(result.astype('uint8'))
+        fig, ax = plt.subplots(1, 2, figsize=(15, 8))
+        ax[0].imshow(X.astype('uint8'))
+        ax[1].imshow(result.astype('uint8'))
         
         if (save):
-            fig.savefig('results/' + self.mode + '.jpg')
+            fig.savefig('results/' + self.mode + '_collage_' + atype + '.jpg')
+            
+    def show_inputs_and_masks(self, save=False):
+        """
+        Show input images for collage and masks based on them
+        """
+        
+        fig, ax = plt.subplots(2, self.K, figsize=(15, 8))
+
+        images = [self.inputs, self.masks]
+        
+        for i in xrange(2):
+            for k in xrange(self.K):
+                ax[i,k].imshow(images[i][k].astype('uint8'))
+                
+        if (save):
+            fig.savefig('results/' + self.mode + '_inputsmasks.jpg')
+            
+    def plot_energy(self, Es, lim=3, atype='a', save=False):
+        """
+        Plot energy
+        """
+        
+        x = np.arange(Es.size)
+        fig, ax = plt.subplots(figsize=(10, 5))
+        ax.plot(x[lim:], Es[lim:], lw=2)
+        ax.set_xlabel('Iterations', fontsize=14)
+        ax.set_ylabel('Energy', fontsize=14)
+        ax.grid()
+
+        if (save):
+            fig.savefig('results/' + self.mode + '_energy_' + atype + '.jpg')
